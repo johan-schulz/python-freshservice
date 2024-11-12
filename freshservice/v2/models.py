@@ -1,7 +1,7 @@
 import dateutil.parser
 
 
-class FreshdeskModel(object):
+class FreshserviceModel(object):
     _keys = None
 
     def __init__(self, **kwargs):
@@ -24,7 +24,7 @@ class FreshdeskModel(object):
         return dateutil.parser.parse(timestamp_str)
 
 
-class TicketField(FreshdeskModel):
+class TicketField(FreshserviceModel):
     def __str__(self):
         return self.name
 
@@ -32,7 +32,7 @@ class TicketField(FreshdeskModel):
         return "<TicketField '{}' '{}'>".format(self.name, self.description)
 
 
-class Ticket(FreshdeskModel):
+class Ticket(FreshserviceModel):
     def __str__(self):
         return self.subject
 
@@ -58,7 +58,7 @@ class Ticket(FreshdeskModel):
         return _s[self._source]
 
 
-class Group(FreshdeskModel):
+class Group(FreshserviceModel):
     def __str__(self):
         return self.name
 
@@ -66,7 +66,7 @@ class Group(FreshdeskModel):
         return "<Group '{}'>".format(self.name)
 
 
-class Comment(FreshdeskModel):
+class Comment(FreshserviceModel):
     def __str__(self):
         return self.body_text
 
@@ -89,7 +89,7 @@ class Comment(FreshdeskModel):
         return _s[self._source]
 
 
-class Contact(FreshdeskModel):
+class Contact(FreshserviceModel):
     def __str__(self):
         return self.name
 
@@ -97,7 +97,7 @@ class Contact(FreshdeskModel):
         return "<Contact '{}'>".format(self.name)
 
 
-class TimeEntry(FreshdeskModel):
+class TimeEntry(FreshserviceModel):
     def __str__(self):
         return "{} ({})".format(self.note, self.time_spent)
 
@@ -105,7 +105,7 @@ class TimeEntry(FreshdeskModel):
         return "<Timesheet entry for Ticket #{}>".format(self.ticket_id)
 
 
-class Customer(FreshdeskModel):
+class Customer(FreshserviceModel):
     def __str__(self):
         return self.name
 
@@ -113,7 +113,7 @@ class Customer(FreshdeskModel):
         return "<Customer '{}'>".format(self.name)
 
 
-class Company(FreshdeskModel):
+class Company(FreshserviceModel):
     def __str__(self):
         return self.name
 
@@ -121,7 +121,7 @@ class Company(FreshdeskModel):
         return "<Company '{}'>".format(self.name)
 
 
-class Agent(FreshdeskModel):
+class Agent(FreshserviceModel):
     def __str__(self):
         return self.contact["name"]
 
@@ -129,7 +129,7 @@ class Agent(FreshdeskModel):
         return "<Agent #{} '{}'>".format(self.id, self.contact["name"])
 
 
-class Role(FreshdeskModel):
+class Role(FreshserviceModel):
     def __str__(self):
         return self.name
 
@@ -137,7 +137,7 @@ class Role(FreshdeskModel):
         return "<Role '{}'>".format(self.name)
 
 
-class SolutionCategory(FreshdeskModel):
+class SolutionCategory(FreshserviceModel):
     def __str__(self):
         return self.name
 
@@ -145,7 +145,7 @@ class SolutionCategory(FreshdeskModel):
         return "<SolutionCategory '{}' #{}>".format(self.name, self.id)
 
 
-class SolutionFolder(FreshdeskModel):
+class SolutionFolder(FreshserviceModel):
     def __str__(self):
        return self.name
 
@@ -153,7 +153,7 @@ class SolutionFolder(FreshdeskModel):
        return "<SolutionFolder '{}' #{}>".format(self.name, self.id)
 
 
-class SolutionArticle(FreshdeskModel):
+class SolutionArticle(FreshserviceModel):
     def __str__(self):
         return self.title
 
