@@ -1,15 +1,15 @@
 from setuptools import find_packages, setup
 
-from freshdesk import __version__
+from freshservice import __version__
 
 setup(
-    name="python-freshdesk",
+    name="python-freshservice",
     version=__version__,
     license="BSD",
-    author="Sam Kingston",
-    author_email="sam@sjkwi.com.au",
-    description="An API for the Freshdesk helpdesk",
-    url="https://github.com/sjkingo/python-freshdesk",
+    author="Johan Schulz",
+    author_email="schulz.johan@gmail.com",
+    description="An API for Freshservice",
+    url="https://github.com/johan-schulz/python-freshservice",
     install_requires=["requests", "python-dateutil"],
     packages=find_packages(),
 )

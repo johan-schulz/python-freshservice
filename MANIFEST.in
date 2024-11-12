@@ -1,1 +1,1 @@
-include freshdesk/sample_json_data/*.json
+include freshservice/sample_json_data/*.json

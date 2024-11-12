@@ -3,16 +3,16 @@ import json
 import requests
 from requests import HTTPError
 
-from freshdesk.v2.errors import (
-    FreshdeskAccessDenied,
-    FreshdeskBadRequest,
-    FreshdeskError,
-    FreshdeskNotFound,
-    FreshdeskRateLimited,
-    FreshdeskServerError,
-    FreshdeskUnauthorized,
+from freshservice.v2.errors import (
+    freshserviceAccessDenied,
+    freshserviceBadRequest,
+    freshserviceError,
+    freshserviceNotFound,
+    freshserviceRateLimited,
+    freshserviceServerError,
+    freshserviceUnauthorized,
 )
-from freshdesk.v2.models import (
+from freshservice.v2.models import (
     Agent,
     Comment,
     Company,
@@ -127,7 +127,7 @@ class TicketAPI(object):
                               None]
             (defaults to 'new_and_my_open')
             Passing None means that no named filter will be passed to
-            Freshdesk, which mimics the behavior of the 'all_tickets' filter
+            freshservice, which mimics the behavior of the 'all_tickets' filter
             in v1 of the API.
 
         Multiple filters are AND'd together.
@@ -178,7 +178,7 @@ class TicketAPI(object):
     def filter_tickets(self, query, **kwargs):
         """Filter tickets by a given query string. The query string must be in
         the format specified in the API documentation at:
-          https://developer.freshdesk.com/api/#filter_tickets
+          https://developer.freshservice.com/api/#filter_tickets
 
         query = "(ticket_field:integer OR ticket_field:'string') AND ticket_field:boolean"
         """
@@ -283,7 +283,7 @@ class ContactAPI(object):
         _updated_since=2018-01-19T02:00:00Z
 
         Passing None means that no named filter will be passed to
-        Freshdesk, which returns list of all contacts
+        freshservice, which returns list of all contacts
 
         """
 
@@ -308,7 +308,7 @@ class ContactAPI(object):
     def filter_contacts(self, query, **kwargs):
         """Filter contacts by a given query string. The query string must be in
         the format specified in the API documentation at:
-          https://developers.freshdesk.com/api/#filter_contacts
+          https://developers.freshservice.com/api/#filter_contacts
 
         query = "(contact_field:integer OR contact_field:'string') AND contact_field:boolean"
         """
@@ -335,7 +335,7 @@ class ContactAPI(object):
     def create_contact(self, *args, **kwargs):
         """Creates a contact"""
         url = "contacts"
-        data = {"view_all_tickets": False, "description": "Freshdesk Contact"}
+        data = {"view_all_tickets": False, "description": "freshservice Contact"}
         data.update(kwargs)
         return Contact(**self._api._post(url, data=json.dumps(data)))
 
@@ -412,7 +412,7 @@ class CompanyAPI(object):
     def filter_companies(self, query, **kwargs):
         """Filter companies by a given query string. The query string must be in
         the format specified in the API documentation at:
-          https://developers.freshdesk.com/api/#filter_companies
+          https://developers.freshservice.com/api/#filter_companies
 
         query = "(company_field:integer OR company_field:'string') AND company_field:boolean"
         """
@@ -524,7 +524,7 @@ class AgentAPI(object):
         }
 
         Passing None means that no named filter will be passed to
-        Freshdesk, which returns list of all agents
+        freshservice, which returns list of all agents
 
         Multiple filters are AND'd together.
         """
@@ -674,11 +674,52 @@ class SolutionArticleAPI(object):
     def list_from_folder_translated(self, id, language_code):
         url = "solutions/folders/%d/articles/%s" % (id, language_code)
         articles = self._api._get(url)
-        return [SolutionArticle(**a) for a in articles]
+        return [SolutionArticle(**a) for a in articles] 
 
-    def create_article(self, folder_id, *args, **kwargs):
-        url = 'solutions/folders/%s/articles' % folder_id
-        return SolutionArticle(**self._api._post(url, data=json.dumps(kwargs)))
+    def create_article(self, **kwargs):
+        """
+        Creates an article with attachments,
+        pass a key 'attachments' with value as list of fully qualified file paths in string format.
+        ex: attachments = ('/path/to/attachment1', '/path/to/attachment2')
+        """
+
+        url = "solutions/articles"
+        status = kwargs.get("status", 2)
+        priority = kwargs.get("article_type", 1)
+        data = { 
+            "status": status,
+            "priority": priority,
+        }
+        data.update(kwargs)
+        if "attachments" in data:
+            return self._create_article_with_attachment(url, data) 
+ 
+        return SolutionArticle(**self._api._post(url, data=json.dumps(data)))
+
+    def _create_article_with_attachment(self, url, data):
+        attachments = data["attachments"]
+        del data["attachments"]
+        multipart_data = []
+
+        for attachment in attachments:
+            file_name = attachment.split("/")[-1:][0]
+            multipart_data.append(("attachments[]", (file_name, open(attachment, "rb"), None)))
+
+        for key, value in data.copy().items():
+            # Reformat ticket properties to work with the multipart/form-data encoding.
+            if isinstance(value, list) and not key.endswith("[]"):
+                data[key + "[]"] = value
+                del data[key]
+
+        if "custom_fields" in data and isinstance(data["custom_fields"], dict):
+            # Reformat custom fields to work with the multipart/form-data encoding.
+            for field, value in data["custom_fields"].items():
+                data["custom_fields[{}]".format(field)] = value
+            del data["custom_fields"]
+
+        # Override the content type so that `requests` correctly sets it to multipart/form-data instead of JSON.
+        article = self._api._post(url, data=data, files=multipart_data, headers={"Content-Type": None})
+        return SolutionArticle(**article)
 
     def create_article_translation(self, article_id, lang, *args, **kwargs):
         url = 'solutions/articles/%s/%s' %( article_id, lang )
@@ -715,7 +756,7 @@ class API(object):
         """Creates a wrapper to perform API actions.
 
         Arguments:
-          domain:    the Freshdesk domain (not custom). e.g. company.freshdesk.com
+          domain:    the freshservice domain (not custom). e.g. company.freshservice.com
           api_key:   the API key
 
         Instances:
@@ -741,8 +782,8 @@ class API(object):
         self.time_entries = TimeEntryAPI(self)
         self.solutions = SolutionAPI(self)
 
-        if domain.find("freshdesk.com") < 0:
-            raise AttributeError("Freshdesk v2 API works only via Freshdesk" "domains and not via custom CNAMEs")
+        if domain.find("freshservice.com") < 0:
+            raise AttributeError("freshservice v2 API works only via freshservice" "domains and not via custom CNAMEs")
         self.domain = domain
 
     def _action(self, req):
@@ -751,33 +792,33 @@ class API(object):
         except ValueError:
             j = {}
 
-        error_message = "Freshdesk Request Failed"
+        error_message = "freshservice Request Failed"
         if "errors" in j:
             error_message = "{}: {}".format(j.get("description"), j.get("errors"))
         elif "message" in j:
             error_message = j["message"]
 
         if req.status_code == 400:
-            raise FreshdeskBadRequest(error_message)
+            raise freshserviceBadRequest(error_message)
         elif req.status_code == 401:
-            raise FreshdeskUnauthorized(error_message)
+            raise freshserviceUnauthorized(error_message)
         elif req.status_code == 403:
-            raise FreshdeskAccessDenied(error_message)
+            raise freshserviceAccessDenied(error_message)
         elif req.status_code == 404:
-            raise FreshdeskNotFound(error_message)
+            raise freshserviceNotFound(error_message)
         elif req.status_code == 429:
-            raise FreshdeskRateLimited(
+            raise freshserviceRateLimited(
                 "429 Rate Limit Exceeded: API rate-limit has been reached until {} seconds. See "
-                "http://freshdesk.com/api#ratelimit".format(req.headers.get("Retry-After"))
+                "http://freshservice.com/api#ratelimit".format(req.headers.get("Retry-After"))
             )
         elif 500 < req.status_code < 600:
-            raise FreshdeskServerError("{}: Server Error".format(req.status_code))
+            raise freshserviceServerError("{}: Server Error".format(req.status_code))
 
         # Catch any other errors
         try:
             req.raise_for_status()
         except HTTPError as e:
-            raise FreshdeskError("{}: {}".format(e, j))
+            raise freshserviceError("{}: {}".format(e, j))
 
         return j
 

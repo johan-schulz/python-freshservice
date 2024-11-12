@@ -4,9 +4,9 @@ import re
 
 import pytest
 
-from freshdesk.v2.api import API
+from freshservice.v2.api import API
 
-DOMAIN = "pythonfreshdesk.freshdesk.com"
+DOMAIN = "pythonfreshservice.freshservice.com"
 API_KEY = "MX4CEAw4FogInimEdRW2"
 
 

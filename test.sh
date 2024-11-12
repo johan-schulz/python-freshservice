@@ -1,2 +1,2 @@
 #!/bin/sh
-pytest --cov=freshdesk
+pytest --cov=freshservice
