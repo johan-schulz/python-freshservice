@@ -799,26 +799,26 @@ class API(object):
             error_message = j["message"]
 
         if req.status_code == 400:
-            raise freshserviceBadRequest(error_message)
+            raise FreshserviceBadRequest(error_message)
         elif req.status_code == 401:
-            raise freshserviceUnauthorized(error_message)
+            raise FreshserviceUnauthorized(error_message)
         elif req.status_code == 403:
-            raise freshserviceAccessDenied(error_message)
+            raise FreshserviceAccessDenied(error_message)
         elif req.status_code == 404:
-            raise freshserviceNotFound(error_message)
+            raise FreshserviceNotFound(error_message)
         elif req.status_code == 429:
-            raise freshserviceRateLimited(
+            raise FreshserviceRateLimited(
                 "429 Rate Limit Exceeded: API rate-limit has been reached until {} seconds. See "
                 "http://freshservice.com/api#ratelimit".format(req.headers.get("Retry-After"))
             )
         elif 500 < req.status_code < 600:
-            raise freshserviceServerError("{}: Server Error".format(req.status_code))
+            raise FreshserviceServerError("{}: Server Error".format(req.status_code))
 
         # Catch any other errors
         try:
             req.raise_for_status()
         except HTTPError as e:
-            raise freshserviceError("{}: {}".format(e, j))
+            raise FreshserviceError("{}: {}".format(e, j))
 
         return j
 
