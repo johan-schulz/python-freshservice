@@ -4,13 +4,13 @@ import requests
 from requests import HTTPError
 
 from freshservice.v2.errors import (
-    freshserviceAccessDenied,
-    freshserviceBadRequest,
-    freshserviceError,
-    freshserviceNotFound,
-    freshserviceRateLimited,
-    freshserviceServerError,
-    freshserviceUnauthorized,
+    FreshserviceAccessDenied,
+    FreshserviceBadRequest,
+    FreshserviceError,
+    FreshserviceNotFound,
+    FreshserviceRateLimited,
+    FreshserviceServerError,
+    FreshserviceUnauthorized,
 )
 from freshservice.v2.models import (
     Agent,
